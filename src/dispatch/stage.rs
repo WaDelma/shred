@@ -34,7 +34,7 @@ use arrayvec::ArrayVec;
 use smallvec::SmallVec;
 
 use dispatch::{SystemExecSend, SystemId};
-use res::{Resources, ResourceId};
+use res::{ResourceId, Resources};
 use system::{RunningTime, System};
 
 const MAX_SYSTEMS_PER_GROUP: usize = 5;
@@ -186,21 +186,21 @@ impl<'a> StagesBuilder<'a> {
 
         (self.barrier..self.stages.len())
             .map(|stage| {
-                let conflict = Self::find_conflict(&*self.ids,
-                                                   &*self.reads,
-                                                   &*self.writes,
-                                                   stage,
-                                                   new_reads.clone(),
-                                                   new_writes.clone(),
-                                                   new_dep);
-                self.remove_ids(stage, new_dep);
-                (stage, conflict)
-            })
+                     let conflict = Self::find_conflict(&*self.ids,
+                                                        &*self.reads,
+                                                        &*self.writes,
+                                                        stage,
+                                                        new_reads.clone(),
+                                                        new_writes.clone(),
+                                                        new_dep);
+                     self.remove_ids(stage, new_dep);
+                     (stage, conflict)
+                 })
             .find(|&(stage, conflict)| match conflict {
                       Conflict::None => true,
                       Conflict::Single(group) => {
                           self.stages[stage].groups[group].len() < MAX_SYSTEMS_PER_GROUP - 1 &&
-                          self.improves_balance(stage, group, new_time as u8)
+                              self.improves_balance(stage, group, new_time as u8)
                       }
                       Conflict::Multiple => false,
                   })
@@ -245,14 +245,14 @@ impl<'a> StagesBuilder<'a> {
 
         let conflict = (0..num_groups)
             .filter(|&group| {
-                let read_and_write = writes[stage][group]
-                    .iter()
-                    .chain(reads[stage][group].iter());
+                        let read_and_write = writes[stage][group]
+                            .iter()
+                            .chain(reads[stage][group].iter());
 
-                check_intersection(new_writes.clone(), read_and_write) ||
-                check_intersection(new_reads.clone(), writes[stage][group].iter()) ||
-                check_intersection(new_dep.iter(), ids[stage][group].iter())
-            })
+                        check_intersection(new_writes.clone(), read_and_write) ||
+                            check_intersection(new_reads.clone(), writes[stage][group].iter()) ||
+                            check_intersection(new_dep.iter(), ids[stage][group].iter())
+                    })
             .fold(Conflict::None, Conflict::add);
 
         conflict
@@ -319,7 +319,9 @@ mod tests {
     }
 
     struct ResA;
+
     struct ResB;
+
     struct ResC;
 
     #[test]
@@ -336,7 +338,9 @@ mod tests {
     #[test]
     fn conflict_rw() {
         let ids = create_ids(&[&[&[0], &[1]]]);
-        let reads = create_reads(&[&[&[ResourceId::new::<ResA>()], &[ResourceId::new::<ResB>()]]]);
+        let reads = create_reads(&[
+            &[&[ResourceId::new::<ResA>()], &[ResourceId::new::<ResB>()]],
+        ]);
         let writes = create_writes(&[&[&[], &[]]]);
 
         let conflict = StagesBuilder::find_conflict(&ids,
@@ -368,18 +372,19 @@ mod tests {
     #[test]
     fn conflict_ww_multi() {
         let ids = create_ids(&[&[&[0], &[1]]]);
-        let reads = create_reads(&[&[&[ResourceId::new::<ResA>(), ResourceId::new::<ResC>()],
-                                     &[]]]);
+        let reads = create_reads(&[
+            &[&[ResourceId::new::<ResA>(), ResourceId::new::<ResC>()], &[]],
+        ]);
         let writes = create_writes(&[&[&[], &[ResourceId::new::<ResB>()]]]);
 
-        let conflict = StagesBuilder::find_conflict(&ids,
-                                                    &reads,
-                                                    &writes,
-                                                    0,
-                                                    &[],
-                                                    &[ResourceId::new::<ResB>(),
-                                                      ResourceId::new::<ResC>()],
-                                                    &SmallVec::new());
+        let conflict =
+            StagesBuilder::find_conflict(&ids,
+                                         &reads,
+                                         &writes,
+                                         0,
+                                         &[],
+                                         &[ResourceId::new::<ResB>(), ResourceId::new::<ResC>()],
+                                         &SmallVec::new());
         assert_eq!(conflict, Conflict::Multiple);
     }
 

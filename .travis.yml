@@ -12,6 +12,7 @@ branches:
     - master
 script:
 - |
+  cargo fmt --write-mode=diff &&
   cargo build --verbose &&
   cargo test --verbose &&
   cargo build --verbose --no-default-features &&

@@ -97,7 +97,8 @@ impl<'a, 'b> DispatcherBuilder<'a, 'b> {
             if let Entry::Vacant(e) = self.map.entry(name.to_owned()) {
                 e.insert(id);
             } else {
-                panic!("Cannot insert multiple systems with the same name (\"{}\")", name);
+                panic!("Cannot insert multiple systems with the same name (\"{}\")",
+                       name);
             }
         }
 

@@ -48,19 +48,19 @@ impl<'a> AsyncDispatcher<'a> {
 
         self.thread_pool
             .spawn_async(move || {
-                {
-                    let stages = stages;
-                    let mut stages = stages.lock().expect("Mutex poisoned");
+                             {
+                                 let stages = stages;
+                                 let mut stages = stages.lock().expect("Mutex poisoned");
 
-                    let res = &*res;
+                                 let res = &*res;
 
-                    for stage in &mut *stages {
-                        stage.execute(res);
-                    }
-                }
+                                 for stage in &mut *stages {
+                                     stage.execute(res);
+                                 }
+                             }
 
-                pulse.pulse();
-            })
+                             pulse.pulse();
+                         })
     }
 
     /// Waits for all the asynchronously dispatched systems to finish

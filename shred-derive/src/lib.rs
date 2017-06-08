@@ -91,15 +91,15 @@ fn gen_def_lt_tokens(lifetime_defs: &Vec<LifetimeDef>) -> Tokens {
     let lts: Vec<Tokens> = lifetime_defs
         .iter()
         .map(|x| {
-            let ref lt = x.lifetime;
-            let ref bounds = x.bounds;
+                 let ref lt = x.lifetime;
+                 let ref bounds = x.bounds;
 
-            if bounds.is_empty() {
+                 if bounds.is_empty() {
                 quote! { #lt }
             } else {
                 quote! { #lt: #( #bounds )+* }
             }
-        })
+             })
         .collect();
 
     quote! { #( #lts ),* }
